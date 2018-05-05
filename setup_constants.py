@@ -1,0 +1,2 @@
+vendor = 0x0A2D
+product = 0x001B
