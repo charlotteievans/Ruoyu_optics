@@ -35,6 +35,7 @@ class ThermovoltageTime:
         self._writer.writerow(['scan:', self._scan])
         self._writer.writerow(['gain:', self._gain])
         self._writer.writerow(['rate:', self._rate])
+        self._writer.writerow(['time constant:', self._lockin.read_tc()[0]])
         self._writer.writerow(['notes:', self._notes])
         self._writer.writerow(['end:', 'end of header'])
         self._writer.writerow(['time', 'x_raw', 'y_raw', 'x_v', 'y_v'])

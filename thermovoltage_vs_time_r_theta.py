@@ -34,6 +34,7 @@ class ThermovoltageTimeRTheta:
         self._writer.writerow(['scan:', self._scan])
         self._writer.writerow(['gain:', self._gain])
         self._writer.writerow(['rate:', self._rate])
+        self._writer.writerow(['time constant:', self._lockin.read_tc()[0]])
         self._writer.writerow(['notes:', self._notes])
         self._writer.writerow(['end:', 'end of header'])
         self._writer.writerow(['time', 'r_raw', 'r_v', 'theta'])
@@ -58,10 +59,10 @@ class ThermovoltageTimeRTheta:
         self._fig.show()
 
     def set_limits(self):
-        if self._voltage[0] > self._max_voltage_x:
-            self._max_voltage_x = self._voltage[0]
-        if self._voltage[0] < self._min_voltage_x:
-            self._min_voltage_x = self._voltage[0]
+        if self._voltage > self._max_voltage_x:
+            self._max_voltage_x = self._voltage
+        if self._voltage < self._min_voltage_x:
+            self._min_voltage_x = self._voltage
         if 0 < self._min_voltage_x < self._max_voltage_x:
             self._ax1.set_ylim(self._min_voltage_x * 1000000 / 2, self._max_voltage_x * 2 * 1000000)
         if self._min_voltage_x < 0 < self._max_voltage_x:
@@ -74,9 +75,9 @@ class ThermovoltageTimeRTheta:
         self._voltage = conversions.convert_x_to_iphoto(raw[0], self._gain)
         time.sleep(self._sleep)
         time_now = time.time() - self._start_time
-        self._writer.writerow([time_now, raw[0], self._voltage[0], raw[1]])
-        self._ax1.scatter(time_now, self._voltage[0] * 1000000, c='c', s=2)
-        self._ax2.scatter(time_now, raw[1], c='c', s=2)
+        self._writer.writerow([time_now, raw[0], self._voltage, raw[1]/self._gain])
+        self._ax1.scatter(time_now, self._voltage * 1000000, c='c', s=2)
+        self._ax2.scatter(time_now, raw[1]/self._gain, c='c', s=2)
         self.set_limits()
         plt.tight_layout()
         self._fig.canvas.draw()

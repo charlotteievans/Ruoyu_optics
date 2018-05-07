@@ -37,7 +37,7 @@ class HeatingTimeRTheta:
         self._writer.writerow(['applied voltage (V):', self._lockin.read_applied_voltage()[0]])
         self._writer.writerow(['osc amplitude (V):', self._lockin.read_oscillator_amplitude()[0]])
         self._writer.writerow(['osc frequency:', self._lockin.read_oscillator_frequency()[0]])
-        self._writer.writerow(['top time constant:', self._lockin.read_tc1()[0]])
+        self._writer.writerow(['time constant:', self._lockin.read_tc()[0]])
         self._writer.writerow(['notes:', self._notes])
         self._writer.writerow(['end:', 'end of header'])
         self._writer.writerow(['time', 'r_raw', 'iphoto_r', 'theta'])
@@ -62,10 +62,10 @@ class HeatingTimeRTheta:
         self._fig.show()
 
     def set_limits(self):
-        if self._iphoto[0] > self._max_iphoto_x:
-            self._max_iphoto_x = self._iphoto[0]
-        if self._iphoto[0] < self._min_iphoto_x:
-            self._min_iphoto_x = self._iphoto[0]
+        if self._iphoto > self._max_iphoto_x:
+            self._max_iphoto_x = self._iphoto
+        if self._iphoto < self._min_iphoto_x:
+            self._min_iphoto_x = self._iphoto
         if 0 < self._min_iphoto_x < self._max_iphoto_x:
             self._ax1.set_ylim(self._min_iphoto_x * 1000 / 1.3, self._max_iphoto_x * 1.3 * 1000)
         if self._min_iphoto_x < 0 < self._max_iphoto_x:
@@ -78,9 +78,9 @@ class HeatingTimeRTheta:
         self._iphoto = conversions.convert_x_to_iphoto(raw[0], self._gain)
         time.sleep(self._sleep)
         time_now = time.time() - self._start_time
-        self._writer.writerow([time_now, raw[0], self._iphoto[0], raw[1]])
-        self._ax1.scatter(time_now, self._iphoto[0] * 1000, c='c', s=2)
-        self._ax2.scatter(time_now, raw[1], c='c', s=2)
+        self._writer.writerow([time_now, raw[0], self._iphoto, raw[1]/self._gain])
+        self._ax1.scatter(time_now, self._iphoto * 1000, c='c', s=2)
+        self._ax2.scatter(time_now, raw[1]/self._gain, c='c', s=2)
         self.set_limits()
         plt.tight_layout()
         self._fig.canvas.draw()
@@ -100,5 +100,7 @@ class HeatingTimeRTheta:
                 while time.time() - self._start_time < self._maxtime:
                     self.measure()
                 plt.savefig(self._imagefile, format='png', bbox_inches='tight')
+                self._lockin.change_applied_voltage(0)
             except KeyboardInterrupt:
                 plt.savefig(self._imagefile, format='png', bbox_inches='tight')  # saves an image of the completed data
+                self._lockin.change_applied_voltage(0)

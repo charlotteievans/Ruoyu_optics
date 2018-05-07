@@ -39,7 +39,7 @@ class HeatingTime:
         self._writer.writerow(['applied voltage (V):', self._lockin.read_applied_voltage()[0]])
         self._writer.writerow(['osc amplitude (V):', self._lockin.read_oscillator_amplitude()[0]])
         self._writer.writerow(['osc frequency:', self._lockin.read_oscillator_frequency()[0]])
-        self._writer.writerow(['top time constant:', self._lockin.read_tc1()[0]])
+        self._writer.writerow(['time constant:', self._lockin.read_tc()[0]])
         self._writer.writerow(['notes:', self._notes])
         self._writer.writerow(['end:', 'end of header'])
         self._writer.writerow(['time', 'x_raw', 'y_raw', 'iphoto_x', 'iphoto_y'])
@@ -112,5 +112,7 @@ class HeatingTime:
                 while time.time() - self._start_time < self._maxtime:
                     self.measure()
                 plt.savefig(self._imagefile, format='png', bbox_inches='tight')
+                self._lockin.change_applied_voltage(0)
             except KeyboardInterrupt:
                 plt.savefig(self._imagefile, format='png', bbox_inches='tight')  # saves an image of the completed data
+                self._lockin.change_applied_voltage(0)
