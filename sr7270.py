@@ -122,7 +122,7 @@ class LockIn:
         return LockIn.read(self)
 
     def change_reference_source(self, source):
-        VALID_SOURCE = {'int': 0, 'ext-rp': 1, 'ext-fp': 2}
+        VALID_SOURCE = {'internal': 0, 'external - rear panel': 1, 'external - front panel': 2}
         if source not in VALID_SOURCE:
             raise ValueError("results: status must be one of %r." % VALID_SOURCE)
         self._ep0.write('ie '+ str(VALID_SOURCE[source]))

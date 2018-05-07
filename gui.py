@@ -26,7 +26,7 @@ class BaseGUI:
 
     def build(self):
         row = tk.Frame(self._master)
-        lab = tk.Label(row, width=20, text='time scans', anchor='w')
+        lab = tk.Label(row, width=20, text='Time scans', anchor='w')
         row.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
         lab.pack(side=tk.LEFT)
         b1 = tk.Button(row, text='thermovoltage',
@@ -69,9 +69,20 @@ class MeasurementGUI:
         self._textbox = None
         self._textbox2 = None
         self._filepath = tk.StringVar()
+        self._sensitivity = tk.StringVar()
+        self._reference = tk.StringVar()
+        self._sensitivity.set(5)
+        self._reference.set('internal')
+        self._time_constant = tk.StringVar()
+        self._time_constant.set(1)
         self._browse_button = tk.Button(self._master, text="Browse", command=self.onclick_browse)
 
-    def makeform(self):
+    def beginform(self, caption, browse_button=True):
+        self._master.title(caption)
+        label = tk.Label(self._master, text=caption)
+        label.pack()
+        if browse_button:
+            self._browse_button.pack()
         for key in self._fields:
             row = tk.Frame(self._master)
             lab = tk.Label(row, width=15, text=key, anchor='w')
@@ -85,6 +96,21 @@ class MeasurementGUI:
             ent.insert(0, str(self._fields[key]))
             self._entries.append((key, ent))
         return self._entries
+
+    def endform(self, run_command):
+        self._master.bind('<Return>', run_command)
+        b1 = tk.Button(self._master, text='Run', command=run_command)
+        b1.pack(side=tk.LEFT, padx=5, pady=5)
+        b2 = tk.Button(self._master, text='Quit', command=self._master.destroy)
+        b2.pack(side=tk.LEFT, padx=5, pady=5)
+
+    def make_option_menu(self, label, parameter, option_list):
+        row = tk.Frame(self._master)
+        row.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
+        lab = tk.Label(row, width=15, text=label, anchor='w')
+        lab.pack(side=tk.LEFT)
+        t = tk.OptionMenu(row, parameter, *option_list)
+        t.pack(side=tk.RIGHT, expand=tk.YES, fill=tk.X)
 
     def fetch(self, event=None):  # stop trying to make fetch happen. It's not going to happen. -Regina, Mean Girls
         for entry in self._entries:
@@ -132,84 +158,55 @@ class MeasurementGUI:
     def change_lockin_parameters(self, event=None):
         self.fetch(event)
         self._lockin.change_applied_voltage(float(self._inputs['bias (mV)']))
-        self._lockin.change_tc(float(self._inputs['time constant (s)']))
-        self._lockin.change_oscillator_amplitude(float(self._inputs['oscillator amplitude (mV)']))
-        self._lockin.change_oscillator_frequency(float(self._inputs['oscillator frequency (Hz)']))
-        self._lockin.change_sensitivity(float(self._inputs['sensitivity (mV)']))
+        self._lockin.change_tc(float(self._time_constant.get()))
+        self._lockin.change_sensitivity(float(self._sensitivity.get()))
+        self._lockin.change_reference_source(self._reference.get())
+        if self._reference.get() == 'internal':
+            self._lockin.change_oscillator_amplitude(float(self._inputs['oscillator amplitude (mV)']))
+            self._lockin.change_oscillator_frequency(float(self._inputs['oscillator frequency (Hz)']))
 
     def build_thermovoltage_time_gui(self):
         caption = "Thermovoltage vs. time"
-        self._master.title(caption)
-        label = tk.Label(self._master, text=caption)
-        label.pack()
         self._fields = {'file path': "", 'device': "", 'scan': 0, 'notes': "", 'gain': 1000,
                         'rate (per second)': 3, 'max time (s)': 60}
-        self._browse_button.pack()
-        self.makeform()
-        self._master.bind('<Return>', self.thermovoltage_time)
-        b1 = tk.Button(self._master, text='Run', command=self.thermovoltage_time)
-        b1.pack(side=tk.LEFT, padx=5, pady=5)
-        b2 = tk.Button(self._master, text='Quit', command=self._master.destroy)
-        b2.pack(side=tk.LEFT, padx=5, pady=5)
+        self.beginform(caption)
+        self.endform(self.thermovoltage_time)
 
     def build_thermovoltage_time_rtheta_gui(self):
-        caption = "R Theta Thermovoltage vs. time"
-        self._master.title(caption)
-        label = tk.Label(self._master, text=caption)
-        label.pack()
+        caption = "R Theta Thermovoltage vs. Time"
         self._fields = {'file path': "", 'device': "", 'scan': 0, 'notes': "", 'gain': 1000,
                         'rate (per second)': 3, 'max time (s)': 60}
-        self._browse_button.pack()
-        self.makeform()
-        self._master.bind('<Return>', self.thermovoltage_time_r_theta)
-        b1 = tk.Button(self._master, text='Run', command=self.thermovoltage_time_r_theta)
-        b1.pack(side=tk.LEFT, padx=5, pady=5)
-        b2 = tk.Button(self._master, text='Quit', command=self._master.destroy)
-        b2.pack(side=tk.LEFT, padx=5, pady=5)
+        self.beginform(caption)
+        self.endform(self.thermovoltage_time_r_theta)
 
     def build_heating_time_gui(self):
         caption = "Heating vs. time"
-        self._master.title(caption)
-        label = tk.Label(self._master, text=caption)
-        label.pack()
         self._fields = {'file path': "", 'device': "", 'scan': 0, 'notes': "", 'gain': 1000,
-                        'rate (per second)': 3, 'max time (s)': 60, 'bias (mV)': 5, 'oscillator amplitude (mV)': 7}
-        self._browse_button.pack()
-        self.makeform()
-        self._master.bind('<Return>', self.heating_time)
-        b1 = tk.Button(self._master, text='Run', command=self.heating_time)
-        b1.pack(side=tk.LEFT, padx=5, pady=5)
-        b2 = tk.Button(self._master, text='Quit', command=self._master.destroy)
-        b2.pack(side=tk.LEFT, padx=5, pady=5)
+                        'rate (per second)': 3, 'max time (s)': 60, 'bias (mV)': 0, 'oscillator amplitude (mV)': 3}
+        self.beginform(caption)
+        self.endform(self.heating_time)
 
     def build_heating_time_rtheta_gui(self):
         caption = "R Theta Heating vs. time"
-        self._master.title(caption)
-        label = tk.Label(self._master, text=caption)
-        label.pack()
         self._fields = {'file path': "", 'device': "", 'scan': 0, 'notes': "", 'gain': 1000,
                         'rate (per second)': 3, 'max time (s)': 60, 'bias (mV)': 0, 'oscillator amplitude (mV)': 3}
-        self._browse_button.pack()
-        self.makeform()
+        self.beginform(caption)
+        self.endform(self.heating_time_r_theta)
         self._master.bind('<Return>', self.heating_time_r_theta)
-        b1 = tk.Button(self._master, text='Run', command=self.heating_time_r_theta)
-        b1.pack(side=tk.LEFT, padx=5, pady=5)
-        b2 = tk.Button(self._master, text='Quit', command=self._master.destroy)
-        b2.pack(side=tk.LEFT, padx=5, pady=5)
 
     def build_change_lockin_parameters_gui(self):
         caption = "Change lock in parameters"
-        self._master.title(caption)
-        label = tk.Label(self._master, text=caption)
-        label.pack()
-        self._fields = {'time constant (s)': 1, 'sensitivity (mV)': 5, 'bias (mV)': 0, 'oscillator amplitude (mV)': 3,
+        self._fields = {'bias (mV)': 0, 'oscillator amplitude (mV)': 3,
                         'oscillator frequency (Hz)': 371}
-        self.makeform()
-        self._master.bind('<Return>', self.change_lockin_parameters)
-        b1 = tk.Button(self._master, text='Run', command=self.change_lockin_parameters)
-        b1.pack(side=tk.LEFT, padx=5, pady=5)
-        b2 = tk.Button(self._master, text='Quit', command=self._master.destroy)
-        b2.pack(side=tk.LEFT, padx=5, pady=5)
+        self.beginform(caption, False)
+        self.make_option_menu('time constant (s)', self._time_constant,
+                              [1e-3, 2e-3, 5e-3, 10e-03, 20e-03, 50e-03, 100e-03, 200e-03, 500e-03, 1, 2, 5, 10])
+        self.make_option_menu('sensitivity (mV)', self._sensitivity, [1e-2, 2e-2, 5e-2, 0.1, 0.2,
+                                                                       0.5, 1, 2, 5, 10, 20, 50])
+        self.make_option_menu('reference source', self._reference, ['internal', 'external - rear panel',
+                                                                    'external - front panel'])
+        self.endform(self.change_lockin_parameters)
+
 
 def main():
     with sr7270.create_endpoints_single(setup_constants.vendor, setup_constants.product) as lockin:
