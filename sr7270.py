@@ -60,8 +60,8 @@ class LockIn:
         self._ep0.write('dac. 3')
         return LockIn.read(self)
 
-    def change_oscillator_frequency(self, millihertz):
-        self._ep0.write('of ' + str(millihertz))
+    def change_oscillator_frequency(self, hertz):
+        self._ep0.write('of. ' + str(hertz))
         LockIn.read(self)  # throws away junk
 
     def read_oscillator_frequency(self):
@@ -120,3 +120,22 @@ class LockIn:
     def read_r_theta(self):
         self._ep0.write('mp.')
         return LockIn.read(self)
+
+    def change_reference_source(self, source):
+        VALID_SOURCE = {'int': 0, 'ext-rp': 1, 'ext-fp': 2}
+        if source not in VALID_SOURCE:
+            raise ValueError("results: status must be one of %r." % VALID_SOURCE)
+        self._ep0.write('ie '+ str(VALID_SOURCE[source]))
+        LockIn.read(self) # throws away junk
+
+    def change_sensitivity(self, millivolts):
+        VALID_SENSITIVITY = {2e-6: 1, 5e-6: 2, 1e-5: 3, 2e-5: 4, 5e-5: 5, 1e-4: 6, 2e-4: 7, 5e-4: 8, 1e-3: 9,
+                             2e-3: 10, 5e-3: 11, 1e-2: 12, 2e-2: 13, 5e-2: 14, 0.1: 15, 0.2: 16, 0.5: 17, 1: 18,
+                             2: 19, 5: 20, 10: 21, 20: 22, 50: 23, 100: 24, 200: 25, 500: 26, 1000: 27}
+        if millivolts not in VALID_SENSITIVITY:
+            millivolts = min(VALID_SENSITIVITY.items(), key=lambda x: abs(millivolts - x[0]))[0]
+        self._ep0.write('sen ' + str(VALID_SENSITIVITY[millivolts]))
+        LockIn.read(self)
+
+
+

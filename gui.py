@@ -20,7 +20,8 @@ class BaseGUI:
         self._app = MeasurementGUI(self._new_window, self._lockin)
         measurement = {'heattime': self._app.build_heating_time_gui, 'ptetime': self._app.build_thermovoltage_time_gui,
                        'heattimertheta': self._app.build_heating_time_rtheta_gui,
-                       'ptetimertheta': self._app.build_thermovoltage_time_rtheta_gui}
+                       'ptetimertheta': self._app.build_thermovoltage_time_rtheta_gui,
+                       'changelockinparams': self._app.build_change_lockin_parameters_gui}
         measurement[measurementtype]()
 
     def build(self):
@@ -45,6 +46,14 @@ class BaseGUI:
         b4 = tk.Button(row, text='heating',
                        command=lambda measurementtype='heattimertheta': self.new_window(measurementtype))
         b4.pack(side=tk.LEFT, fill=tk.X, padx=5, pady=5)
+
+        row = tk.Frame(self._master)
+        lab = tk.Label(row, width=20, text='Change parameters', anchor='w')
+        row.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
+        lab.pack(side=tk.LEFT)
+        b3 = tk.Button(row, text='lock in',
+                       command=lambda measurementtype='changelockinparams': self.new_window(measurementtype))
+        b3.pack(side=tk.LEFT, fill=tk.X, padx=5, pady=5)
 
         b5 = tk.Button(self._master, text='Quit all windows', command=self._master.quit)
         b5.pack()
@@ -120,6 +129,14 @@ class MeasurementGUI:
                           self._lockin)
         run.main()
 
+    def change_lockin_parameters(self, event=None):
+        self.fetch(event)
+        self._lockin.change_applied_voltage(float(self._inputs['bias (mV)']))
+        self._lockin.change_tc(float(self._inputs['time constant (s)']))
+        self._lockin.change_oscillator_amplitude(float(self._inputs['oscillator amplitude (mV)']))
+        self._lockin.change_oscillator_frequency(float(self._inputs['oscillator frequency (Hz)']))
+        self._lockin.change_sensitivity(float(self._inputs['sensitivity (mV)']))
+
     def build_thermovoltage_time_gui(self):
         caption = "Thermovoltage vs. time"
         self._master.title(caption)
@@ -171,11 +188,25 @@ class MeasurementGUI:
         label = tk.Label(self._master, text=caption)
         label.pack()
         self._fields = {'file path': "", 'device': "", 'scan': 0, 'notes': "", 'gain': 1000,
-                        'rate (per second)': 3, 'max time (s)': 60, 'bias (mV)': 5, 'oscillator amplitude (mV)': 7}
+                        'rate (per second)': 3, 'max time (s)': 60, 'bias (mV)': 0, 'oscillator amplitude (mV)': 3}
         self._browse_button.pack()
         self.makeform()
         self._master.bind('<Return>', self.heating_time_r_theta)
         b1 = tk.Button(self._master, text='Run', command=self.heating_time_r_theta)
+        b1.pack(side=tk.LEFT, padx=5, pady=5)
+        b2 = tk.Button(self._master, text='Quit', command=self._master.destroy)
+        b2.pack(side=tk.LEFT, padx=5, pady=5)
+
+    def build_change_lockin_parameters_gui(self):
+        caption = "Change lock in parameters"
+        self._master.title(caption)
+        label = tk.Label(self._master, text=caption)
+        label.pack()
+        self._fields = {'time constant (s)': 1, 'sensitivity (mV)': 5, 'bias (mV)': 0, 'oscillator amplitude (mV)': 3,
+                        'oscillator frequency (Hz)': 371}
+        self.makeform()
+        self._master.bind('<Return>', self.change_lockin_parameters)
+        b1 = tk.Button(self._master, text='Run', command=self.change_lockin_parameters)
         b1.pack(side=tk.LEFT, padx=5, pady=5)
         b2 = tk.Button(self._master, text='Quit', command=self._master.destroy)
         b2.pack(side=tk.LEFT, padx=5, pady=5)
