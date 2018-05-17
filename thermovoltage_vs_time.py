@@ -39,7 +39,7 @@ class ThermovoltageTime:
         self._writer.writerow(['notes:', self._notes])
         self._writer.writerow(['end:', 'end of header'])
         self._writer.writerow(['time', 'x_raw', 'y_raw', 'x_v', 'y_v'])
-        
+
     def makefile(self):
         os.makedirs(self._filepath, exist_ok=True)
         index = self._scan
@@ -95,10 +95,10 @@ class ThermovoltageTime:
 
     def main(self):
         self.makefile()
-        with open(self._file, 'w', newline='') as inputfile:
+        with open(self._file, 'w', newline='') as outputfile:
             try:
                 self._start_time = time.time()
-                self._writer = csv.writer(inputfile)
+                self._writer = csv.writer(outputfile)
                 self.write_header()
                 self.setup_plots()
                 while time.time() - self._start_time < self._maxtime:
