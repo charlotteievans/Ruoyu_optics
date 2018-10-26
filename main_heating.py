@@ -11,8 +11,8 @@ from os import path
 def write_header(w):
     w.writerow(['gain:', args.gain])
     w.writerow(['applied voltage:', args.bias])
-    w.writerow(['osc amplitude:', lock_in.read_oscillator_amplitude()[0]])
-    w.writerow(['osc frequency:', lock_in.read_oscillator_frequency()[0]])
+    w.writerow(['osc amplitude:', lock_in.read_oscillator_amplitude()])
+    w.writerow(['osc frequency:', lock_in.read_oscillator_frequency()])
     w.writerow(['time constant:', lock_in.read_tc()[0]])
     w.writerow(['notes:', args.notes])
     w.writerow(['end:', 'end of header'])

@@ -214,18 +214,6 @@ class MeasurementGUI:
         lab.pack(side=tk.LEFT)
         b1 = tk.Button(row, text='Auto phase', command=lambda lockin=self._lockin: self.autophase(lockin))
         b1.pack(side=tk.LEFT, fill=tk.X, padx=5, pady=5)
-        row = tk.Frame(self._master)
-        lab = tk.Label(row, width=20, text='Auto phase', anchor='w')
-        row.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
-        lab.pack(side=tk.LEFT)
-        b1 = tk.Button(row, text='Auto phase', command=self._lockin.read_xy)
-        b1.pack(side=tk.LEFT, fill=tk.X, padx=5, pady=5)
-        row = tk.Frame(self._master)
-        lab = tk.Label(row, width=20, text='Auto phase', anchor='w')
-        row.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
-        lab.pack(side=tk.LEFT)
-        b1 = tk.Button(row, text='Auto phase', command=self._lockin.auto_sensitivity)
-        b1.pack(side=tk.LEFT, fill=tk.X, padx=5, pady=5)
         self.endform(self.change_lockin_parameters)
 
 
