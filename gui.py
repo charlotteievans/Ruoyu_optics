@@ -194,17 +194,38 @@ class MeasurementGUI:
         self.endform(self.heating_time_r_theta)
         self._master.bind('<Return>', self.heating_time_r_theta)
 
+    def autophase(self, lockin, event=None):
+        lockin.auto_phase()
+
     def build_change_lockin_parameters_gui(self):
         caption = "Change lock in parameters"
-        self._fields = {'bias (mV)': 0, 'oscillator amplitude (mV)': 3,
-                        'oscillator frequency (Hz)': 371}
+        self._fields = {'bias (mV)': '', 'oscillator amplitude (mV)': '',
+                        'oscillator frequency (Hz)': ''}
         self.beginform(caption, False)
         self.make_option_menu('time constant (s)', self._time_constant,
                               [1e-3, 2e-3, 5e-3, 10e-03, 20e-03, 50e-03, 100e-03, 200e-03, 500e-03, 1, 2, 5, 10])
-        self.make_option_menu('sensitivity (mV)', self._sensitivity, [1e-2, 2e-2, 5e-2, 0.1, 0.2,
-                                                                       0.5, 1, 2, 5, 10, 20, 50])
+        self.make_option_menu('sensitivity (mV)', self._sensitivity, [1e-2, 2e-2, 5e-2, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20,
+                                                                      50])
         self.make_option_menu('reference source', self._reference, ['internal', 'external - rear panel',
                                                                     'external - front panel'])
+        row = tk.Frame(self._master)
+        lab = tk.Label(row, width=20, text='Auto phase', anchor='w')
+        row.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
+        lab.pack(side=tk.LEFT)
+        b1 = tk.Button(row, text='Auto phase', command=lambda lockin=self._lockin: self.autophase(lockin))
+        b1.pack(side=tk.LEFT, fill=tk.X, padx=5, pady=5)
+        row = tk.Frame(self._master)
+        lab = tk.Label(row, width=20, text='Auto phase', anchor='w')
+        row.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
+        lab.pack(side=tk.LEFT)
+        b1 = tk.Button(row, text='Auto phase', command=self._lockin.read_xy)
+        b1.pack(side=tk.LEFT, fill=tk.X, padx=5, pady=5)
+        row = tk.Frame(self._master)
+        lab = tk.Label(row, width=20, text='Auto phase', anchor='w')
+        row.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
+        lab.pack(side=tk.LEFT)
+        b1 = tk.Button(row, text='Auto phase', command=self._lockin.auto_sensitivity)
+        b1.pack(side=tk.LEFT, fill=tk.X, padx=5, pady=5)
         self.endform(self.change_lockin_parameters)
 
 
