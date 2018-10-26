@@ -78,16 +78,16 @@ class LockIn:
         sens = [2e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2, 2e-2, 5e-2, 0.1, 0.2, 0.5,
                 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000]
         self._ep0.write('st')
-        self.check_status(self.read_dev())
+        self.read()
         if self._overload:
             self._ep0.write('sen.')
-            s = ''.join(chr(x) for x in self._dev.read(self._ep1, 100, 100))[0:-3].replace('\n', '')
+            s = self.read_dev()[0:-3].replace('\n', '')
             s = [float(j) for j in s.split(',')][0] * 1000
             s = [sens[i + 1] for i in range(len(sens)) if sens[i] == s][0]
             print('Auto adjusting sensitivity to {} ms'.format(s))
             self.change_sensitivity(s)
             self._ep0.write('st')
-            self.check_status(self.read_dev())
+            self.read()
             time.sleep(self.read_tc() * 3)
             self.auto_sensitivity()
 
