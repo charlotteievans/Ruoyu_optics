@@ -1,9 +1,9 @@
+import contextlib
+import time
+from collections import OrderedDict
+
 import usb.core
 import usb.util
-import contextlib
-from optics import parser_tool
-from collections import OrderedDict
-import time
 
 
 @contextlib.contextmanager

@@ -1,7 +1,8 @@
+import contextlib
+
 import visa
 from ThorlabsPM100 import ThorlabsPM100
-import contextlib
-import optics.setup_constants as hw
+
 
 @contextlib.contextmanager
 def connect(address):
