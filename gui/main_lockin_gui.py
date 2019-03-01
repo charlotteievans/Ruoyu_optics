@@ -1,8 +1,7 @@
 import matplotlib
-import time
+
 matplotlib.use('Qt4Agg')  # this allows you to see the interactive plots!
 import tkinter as tk
-import numpy as np
 from optics.hardware_control import pm100d, sr7270, polarizercontroller
 import optics.hardware_control.hardware_addresses_and_constants as hw
 from optics.thermovoltage_measurement.thermovoltage_polarization import ThermovoltagePolarization, \
@@ -13,7 +12,6 @@ from optics.heating_measurement.heating_polarization import HeatingPolarization,
 from contextlib import ExitStack
 import datetime
 import csv
-import os
 from os import path
 from optics.gui.base_gui import BaseGUI
 
@@ -69,7 +67,6 @@ class BaseLockinGUI(BaseGUI):
                        command=lambda lockin=self._sr7270_single_reference: self.autophase(lockin))
         b1.pack(side=tk.LEFT, fill=tk.X, padx=5, pady=5)
         self.make_measurement_button(row, 'change parameters', 'singlereference')
-        row = self.makerow('dual harmonic lock in')
         b12 = tk.Button(self._master, text='Quit all windows', command=self._master.quit)
         b12.pack()
 

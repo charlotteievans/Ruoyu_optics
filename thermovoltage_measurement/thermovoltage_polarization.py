@@ -27,10 +27,8 @@ class ThermovoltagePolarization(PolarizationMeasurement):
         self._writer.writerow([time_now, self._polarization, raw[0], raw[1], voltages[0], voltages[1]])
         self._ax1.plot(conversions.degrees_to_radians(self._polarization), abs(voltages[0]) * 1000000,
                        linestyle='', color='blue', marker='o', markersize=2)
-        self._ax1.set_rmax(self._vmax_x * 1000000 * 1.1)
         self._ax2.plot(conversions.degrees_to_radians(self._polarization), abs(voltages[1]) * 1000000,
                        linestyle='', color='blue', marker='o', markersize=2)
-        self._ax2.set_rmax(self._vmax_y * 1000000 * 1.1)
 
 
 class ThermovoltagePolarizationRT(PolarizationMeasurement):
@@ -42,7 +40,7 @@ class ThermovoltagePolarizationRT(PolarizationMeasurement):
 
     def end_header(self, writer):
         writer.writerow(['end:', 'end of header'])
-        writer.writerow(['time', 'polarization', 'r_raw', 'theta', 'x_v'])
+        writer.writerow(['time', 'polarization', 'r_raw', 'theta_raw', 'r_v', 'theta'])
 
     def setup_plots(self):
         self._ax1.title.set_text('|R| (uV)')
@@ -52,10 +50,8 @@ class ThermovoltagePolarizationRT(PolarizationMeasurement):
         raw = self._sr7270_single_reference.read_xy()
         voltage = conversions.convert_x_to_iphoto(raw[0], self._gain)
         time_now = time.time() - self._start_time
-        self._writer.writerow([time_now, self._polarization, raw[0], raw[1] / self._gain, voltage])
+        self._writer.writerow([time_now, self._polarization, raw[0], raw[1], voltage, raw[1] / self._gain])
         self._ax1.plot(conversions.degrees_to_radians(self._polarization), abs(voltage) * 1000000,
                        linestyle='', color='blue', marker='o', markersize=2)
-        self._ax1.set_rmax(self._vmax_x * 1000000 * 1.1)
-        self._ax2.plot(conversions.degrees_to_radians(self._polarization), raw[1]/self._gain,
+        self._ax2.plot(conversions.degrees_to_radians(self._polarization), abs(raw[1])/self._gain,
                        linestyle='', color='blue', marker='o', markersize=2)
-        self._ax2.set_rmax(self._vmax_y * 1000000 * 1.1)

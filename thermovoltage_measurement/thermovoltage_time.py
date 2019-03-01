@@ -49,7 +49,7 @@ class ThermovoltageTimeRT(TimeMeasurement):
 
     def end_header(self, writer):
         writer.writerow(['end:', 'end of header'])
-        writer.writerow(['time', 'r_raw', 'theta', 'x_v'])
+        writer.writerow(['time', 'r_raw', 'theta_raw', 'r_v', 'theta'])
 
     def setup_plots(self):
         self._ax1.title.set_text('R')
@@ -65,7 +65,7 @@ class ThermovoltageTimeRT(TimeMeasurement):
         self._voltage = conversions.convert_x_to_iphoto(raw[0], self._gain)
         tk_sleep(self._master, self._sleep)
         time_now = time.time() - self._start_time
-        self._writer.writerow([time_now, raw[0], raw[1] / self._gain, self._voltage])
+        self._writer.writerow([time_now, raw[0], raw[1], self._voltage, raw[1] / self._gain])
         self._ax1.plot(time_now, self._voltage * 1000000, linestyle='', color='blue', marker='o', markersize=2)
         self._ax2.plot(time_now, raw[1] / self._gain, linestyle='', color='blue', marker='o', markersize=2)
         self._fig.tight_layout()

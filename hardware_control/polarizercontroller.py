@@ -5,7 +5,7 @@ import time
 
 from optics.hardware_control.hardware_addresses_and_constants import polarizer_offset
 
-sys.path.append("C:\\Program Files (x86)\\Thorlabs\\Kinesis") #  adds DLL path to PATH
+sys.path.append("C:\\Program Files\\Thorlabs\\Kinesis") #  adds DLL path to PATH
 
 #  DOTNET (x64) DLLs. These need to be UNBLOCKED to be found (right click -> properties -> unblock
 #  This uses Python For DotNet NOT IronPython

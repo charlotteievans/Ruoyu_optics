@@ -35,18 +35,12 @@ class HeatingPolarization(PolarizationMeasurement):
     def do_measurement(self):
         raw = self._sr7270_single_reference.read_xy()
         iphoto = [conversions.convert_x_to_iphoto(x, self._gain) for x in raw]
-        if abs(iphoto[0]) > self._vmax_x:
-            self._vmax_x = abs(iphoto[0])
-        if abs(iphoto[1]) > self._vmax_y:
-            self._vmax_y = abs(iphoto[1])
         time_now = time.time() - self._start_time
         self._writer.writerow([time_now, self._polarization, raw[0], raw[1], iphoto[0], iphoto[1]])
         self._ax1.plot(conversions.degrees_to_radians(self._polarization), abs(iphoto[0]) * 1000, linestyle='',
                        color='blue', marker='o', markersize=2)
-        self._ax1.set_rmax(self._vmax_x * 1.1 * 1000)
         self._ax2.plot(conversions.degrees_to_radians(self._polarization), abs(iphoto[1]) * 1000, linestyle='',
                        color='blue', marker='o', markersize=2)
-        self._ax2.set_rmax(self._vmax_y * 1.1 * 1000)
 
 
 class HeatingPolarizationRT(PolarizationMeasurement):
@@ -69,7 +63,7 @@ class HeatingPolarizationRT(PolarizationMeasurement):
 
     def end_header(self, writer):
         writer.writerow(['end:', 'end of header'])
-        writer.writerow(['time', 'polarization', 'x_raw', 'theta', 'iphoto_x'])
+        writer.writerow(['time', 'polarization', 'r_raw', 'theta_raw', 'iphoto', 'theta'])
 
     def setup_plots(self):
         self._ax1.title.set_text('|R| (mA)')
@@ -78,15 +72,9 @@ class HeatingPolarizationRT(PolarizationMeasurement):
     def do_measurement(self):
         raw = self._sr7270_single_reference.read_r_theta()
         iphoto = conversions.convert_x_to_iphoto(raw[0], self._gain)
-        if abs(iphoto[0]) > self._vmax_x:
-            self._vmax_x = abs(iphoto[0])
-        if abs(iphoto[1]) > self._vmax_y:
-            self._vmax_y = abs(iphoto[1])
         time_now = time.time() - self._start_time
-        self._writer.writerow([time_now, self._polarization, raw[0], raw[1] / self._gain, iphoto])
+        self._writer.writerow([time_now, self._polarization, raw[0], raw[1], iphoto, raw[1] / self._gain])
         self._ax1.plot(conversions.degrees_to_radians(self._polarization), abs(iphoto) * 1000, linestyle='',
                        color='blue', marker='o', markersize=2)
-        self._ax1.set_rmax(self._vmax_x * 1.1 * 1000)
-        self._ax2.plot(conversions.degrees_to_radians(self._polarization), abs(raw[1])/self._gain, linestyle='',
+        self._ax2.plot(conversions.degrees_to_radians(self._polarization), abs(raw[1]) / self._gain, linestyle='',
                        color='blue', marker='o', markersize=2)
-        self._ax2.set_rmax(self._vmax_y * 1.1 * 1000)
