@@ -12,7 +12,7 @@ class LockinBaseMeasurement:
     def __init__(self, master, filepath, device, npc3sg_input=None, npc3sg_x=None, npc3sg_y=None, sr7270_dual_harmonic=None,
                  sr7270_single_reference=None, powermeter=None, attenuator_wheel=None, waveplate=None, keithley=None,
                  daq_input=None, daq_switch_ai=None, daq_switch_ao=None, laser=None, gain=None, notes=None, mono=None,
-                 ccd=None, scan=None):
+                 ccd=None, scan=None, bsc102_x=None, bsc102_y=None):
         self._master = master
         self._filepath = filepath
         self._device = device
@@ -21,6 +21,8 @@ class LockinBaseMeasurement:
         self._npc3sg_input = npc3sg_input
         self._npc3sg_x = npc3sg_x
         self._npc3sg_y = npc3sg_y
+        self._bsc102_x = bsc102_x
+        self._bsc102_y = bsc102_y
         self._sr7270_dual_harmonic = sr7270_dual_harmonic
         self._sr7270_single_reference = sr7270_single_reference
         self._powermeter = powermeter
@@ -53,12 +55,18 @@ class LockinBaseMeasurement:
         self._ax2 = None
         self._ax3 = None
         self._ax4 = None
+        self._im1 = None
+        self._im2 = None
+        self._clb1 = None
+        self._clb2 = None
         self._fig = Figure()
         self.load()
         self._fig.tight_layout()
         self._canvas = FigureCanvasTkAgg(self._fig, master=self._master)  # A tk.DrawingArea.
         self._canvas.draw()
         self._canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+        self._filename = None
+        self._imagefile = None
 
     def load(self):
         self._ax1 = self._fig.add_subplot(211)
@@ -122,7 +130,11 @@ class LockinBaseMeasurement:
     def rescale(self):
         pass
 
-    def pack_buttons(self, master, abort_button=True, colormap_rescale=False):
+    def centerbeam(self):
+        self._bsc102_y.move(80)
+        self._bsc102_x.move(80)
+
+    def pack_buttons(self, master, abort_button=True, colormap_rescale=False, center_beam=False):
         if colormap_rescale:
             row = tk.Frame(master)
             lab = tk.Label(row, text='max counts', anchor='w')
@@ -138,6 +150,9 @@ class LockinBaseMeasurement:
             button.pack(side=tk.LEFT, fill=tk.X, padx=5, pady=5)
         if abort_button:
             button = tk.Button(master=master, text="Abort", command=self.abort)
+            button.pack(side=tk.BOTTOM)
+        if center_beam:
+            button = tk.Button(master=self._master, text="Go to center", command=self.centerbeam)
             button.pack(side=tk.BOTTOM)
 
     def tk_sleep(self, ms):
@@ -161,16 +176,20 @@ class LockinBaseMeasurement:
     def measure(self):
         pass
 
-    def main2(self, scan_name, record_polarization=True, record_power=True, record_position=True):
-        self.pack_buttons(self._master)
-        filename, imagefile, self._scan = self.make_file(scan_name, self._scan, record_polarization=record_polarization)
-        with open(filename, 'w', newline='') as inputfile:
+    def main2(self, scan_name, record_polarization=True, record_power=True, record_position=True, abort_button=True,
+              center_beam=False, colormap_rescale=False):
+        self.pack_buttons(self._master, abort_button=abort_button, center_beam=center_beam,
+                          colormap_rescale=colormap_rescale)
+        self._filename, self._imagefile, self._scan = self.make_file(scan_name, self._scan,
+                                                                     record_polarization=record_polarization)
+        with open(self._filename, 'w', newline='') as inputfile:
             self.start()
             self._start_time = time.time()
             self._writer = csv.writer(inputfile)
-            self.write_header(self._writer, record_polarization=record_polarization, record_power=record_power, record_position=record_position)
+            self.write_header(self._writer, record_polarization=record_polarization, record_power=record_power,
+                              record_position=record_position)
             self.setup_plots()
             self._canvas.draw()
             self.measure()
-            self._fig.savefig(imagefile, format='png', bbox_inches='tight')
+            self._fig.savefig(self._imagefile, format='png', bbox_inches='tight')
             self.stop()

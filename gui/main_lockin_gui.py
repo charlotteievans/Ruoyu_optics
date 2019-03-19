@@ -2,10 +2,11 @@ import matplotlib
 
 matplotlib.use('Qt4Agg')  # this allows you to see the interactive plots!
 import tkinter as tk
-from optics.hardware_control import pm100d, sr7270, polarizercontroller
+from optics.hardware_control import pm100d, sr7270, polarizercontroller, bsc102controller
 import optics.hardware_control.hardware_addresses_and_constants as hw
 from optics.thermovoltage_measurement.thermovoltage_polarization import ThermovoltagePolarization, \
     ThermovoltagePolarizationRT
+from optics.thermovoltage_measurement.thermovoltage_map import ThermovoltageMapScan
 from optics.thermovoltage_measurement.thermovoltage_time import ThermovoltageTime, ThermovoltageTimeRT
 from optics.heating_measurement.heating_time import HeatingTime, HeatingTimeRT
 from optics.heating_measurement.heating_polarization import HeatingPolarization, HeatingPolarizationRT
@@ -17,11 +18,14 @@ from optics.gui.base_gui import BaseGUI
 
 
 class BaseLockinGUI(BaseGUI):
-    def __init__(self, master, sr7270_single_reference=None, powermeter=None, waveplate=None):
+    def __init__(self, master, sr7270_single_reference=None, powermeter=None, waveplate=None, bsc102_x=None,
+                 bsc102_y=None):
         self._master = master
         super().__init__(self._master)
         self._master.title('Optics setup measurements')
         self._sr7270_single_reference = sr7270_single_reference
+        self._bsc102_x = bsc102_x
+        self._bsc102_y = bsc102_y
         self._powermeter = powermeter
         self._waveplate = waveplate
         self._newWindow = None
@@ -41,10 +45,17 @@ class BaseLockinGUI(BaseGUI):
                        'ptetimert': self._app.build_thermovoltage_time_rt_gui,
                        'polarization': self._app.build_change_polarization_gui,
                        'singlereference': self._app.build_single_reference_gui,
-                       'measureresistance': self._app.build_measure_resistance_gui}
+                       'measureresistance': self._app.build_measure_resistance_gui,
+                       'changeposition': self._app.build_change_position_gui,
+                       'ptemap': self._app.build_thermvoltage_map_gui}
         measurement[measurementtype]()
 
     def build(self):
+        row = self.makerow('map scans')
+        if self._bsc102_x and self._bsc102_y:
+            self.make_measurement_button(row, 'thermovoltage', 'ptemap')
+        else:
+            self.makerow('BSC102 Stepper Motor not connected', side=None, width=20)
         row = self.makerow('polarization scans')
         if self._waveplate:
             self.make_measurement_button(row, 'thermovoltage', 'ptepolarization')
@@ -60,6 +71,7 @@ class BaseLockinGUI(BaseGUI):
         self.make_measurement_button(row, 'heating rt', 'heattimert')
         row = self.makerow('change parameters')
         self.make_measurement_button(row, 'polarization', 'polarization')
+        self.make_measurement_button(row, 'position', 'changeposition')
         row = self.makerow('measure resistance')
         self.make_measurement_button(row, 'lock in', 'measureresistance')
         row = self.makerow('single reference lock in')
@@ -75,10 +87,13 @@ class BaseLockinGUI(BaseGUI):
 
 
 class LockinMeasurementGUI(BaseGUI):
-    def __init__(self, master, sr7270_single_reference=None, powermeter=None, waveplate=None):
+    def __init__(self, master, sr7270_single_reference=None, powermeter=None, waveplate=None, bsc102_x=None,
+                 bsc102_y=None):
         self._master = master
         super().__init__(self._master)
         self._sr7270_single_reference = sr7270_single_reference
+        self._bsc102_x = bsc102_x
+        self._bsc102_y = bsc102_y
         self._powermeter = powermeter
         self._waveplate = waveplate
         self._direction = tk.StringVar()
@@ -97,6 +112,21 @@ class LockinMeasurementGUI(BaseGUI):
         self._sen2 = tk.StringVar()
         self._abort = tk.StringVar()
         self._increase = tk.StringVar()
+
+    def changeposition(self, event=None):
+        self.fetch(event)
+        self._bsc102_x.move(int(self._inputs['x']))
+        self._bsc102_y.move(int(self._inputs['y']))
+        self._textbox.delete(1.0, tk.END)
+        self._textbox.insert(tk.END, [self._bsc102_x.read_position(), self._bsc102_y.read_position()])
+        self._textbox.pack()
+
+    def center_beam(self):
+        self._bsc102_x.move(4)
+        self._bsc102_y.move(4)
+        self._textbox.delete(1.0, tk.END)
+        self._textbox.insert(tk.END, [self._bsc102_x.read_position(), self._bsc102_y.read_position()])
+        self._textbox.pack()
 
     def thermovoltage_time(self, event=None):
         self.fetch(event)
@@ -294,8 +324,6 @@ class LockinMeasurementGUI(BaseGUI):
         resistance = osc / x * gain
         self._textbox.delete(1.0, tk.END)
         self._textbox.insert(tk.END, resistance)
-        self._textbox2.delete(1.0, tk.END)
-        self._textbox2.insert(tk.END, resistance - 51)
         self._textbox.pack()
         if path.exists(path.join(self._inputs['file path'], self._inputs['file name'] + '.csv')):
             file_type = 'a'
@@ -304,10 +332,10 @@ class LockinMeasurementGUI(BaseGUI):
         with open(path.join(self._inputs['file path'], self._inputs['file name'] + '.csv'), file_type, newline='') as q:
             writer = csv.writer(q)
             if file_type == 'w':
-                writer.writerow(['device', 'notes', 'total resistance (ohms)', 'corrected resistance (ohms)',
+                writer.writerow(['device', 'notes', 'total resistance (ohms)',
                                  'osc. amplitude (V)', 'gain', 'raw x', 'raw y'])
             writer.writerow([self._inputs['device'], self._inputs['notes'], resistance,
-                             resistance - 51, osc, gain, x, y])
+                             osc, gain, x, y])
 
     def build_coming_soon(self):
         caption = "Coming soon"
@@ -343,16 +371,21 @@ def main():
             except Exception:
                 waveplate = None
                 print('Warning: Waveplate controller not connected')
+            try:
+                bsc102_x, bsc102_y = cm.enter_context(bsc102controller.connect_bsc102(hw.bsc102_serial_number))
+            except:
+                bsc102_x = None
+                bsc102_y = None
+                print('Warning: BSC102 stepper motor not connected')
             print('hardware connection complete')
             root = tk.Tk()
             app = BaseLockinGUI(root, sr7270_single_reference=sr7270_single_reference,
-                                powermeter=powermeter, waveplate=waveplate)
+                                powermeter=powermeter, waveplate=waveplate, bsc102_x=bsc102_x, bsc102_y=bsc102_y)
             app.build()
             root.mainloop()
     except Exception as err:
         print(err)
         input('Press enter to exit')
-
 
 
 if __name__ == '__main__':
