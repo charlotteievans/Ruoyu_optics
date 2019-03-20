@@ -10,6 +10,7 @@ from optics.thermovoltage_measurement.thermovoltage_map import ThermovoltageMapS
 from optics.thermovoltage_measurement.thermovoltage_time import ThermovoltageTime, ThermovoltageTimeRT
 from optics.heating_measurement.heating_time import HeatingTime, HeatingTimeRT
 from optics.heating_measurement.heating_polarization import HeatingPolarization, HeatingPolarizationRT
+from optics.heating_measurement.heating_map import HeatingMapScan
 from contextlib import ExitStack
 import datetime
 import csv
@@ -34,7 +35,8 @@ class BaseLockinGUI(BaseGUI):
     def new_window(self, measurementtype):
         self._newWindow = tk.Toplevel(self._master)
         self._app = LockinMeasurementGUI(self._newWindow, sr7270_single_reference=self._sr7270_single_reference,
-                                         powermeter=self._powermeter, waveplate=self._waveplate)
+                                         powermeter=self._powermeter, waveplate=self._waveplate,
+                                         bsc102_x=self._bsc102_x, bsc102_y=self._bsc102_y)
         measurement = {'heatpolarization': self._app.build_heating_polarization_gui,
                        'heatpolarizationrt': self._app.build_heating_polarization_rt_gui,
                        'ptepolarization': self._app.build_thermovoltage_polarization_gui,
@@ -47,13 +49,15 @@ class BaseLockinGUI(BaseGUI):
                        'singlereference': self._app.build_single_reference_gui,
                        'measureresistance': self._app.build_measure_resistance_gui,
                        'changeposition': self._app.build_change_position_gui,
-                       'ptemap': self._app.build_thermvoltage_map_gui}
+                       'ptemap': self._app.build_thermvoltage_map_gui,
+                       'heatingmap': self._app.build_heating_map_gui}
         measurement[measurementtype]()
 
     def build(self):
         row = self.makerow('map scans')
         if self._bsc102_x and self._bsc102_y:
             self.make_measurement_button(row, 'thermovoltage', 'ptemap')
+            self.make_measurement_button(row, 'heating', 'heatingmap')
         else:
             self.makerow('BSC102 Stepper Motor not connected', side=None, width=20)
         row = self.makerow('polarization scans')
@@ -113,6 +117,17 @@ class LockinMeasurementGUI(BaseGUI):
         self._abort = tk.StringVar()
         self._increase = tk.StringVar()
 
+    def build_change_position_gui(self):
+        caption = "Change laser position"
+        self._fields = {'x': 4, 'y': 4}
+        self.beginform(caption, False)
+        self.maketextbox('Current Position', [self._bsc102_x.read_position(), self._bsc102_y.read_position()])
+        self.makebutton('Go to center', self.center_beam)
+        self.makebutton('Change Position', self.changeposition)
+        self.makebutton('Home', self.home)
+        self._master.bind('<Return>', self.changeposition)
+        self.makebutton('Quit', self._master.destroy)
+
     def changeposition(self, event=None):
         self.fetch(event)
         self._bsc102_x.move(int(self._inputs['x']))
@@ -127,6 +142,66 @@ class LockinMeasurementGUI(BaseGUI):
         self._textbox.delete(1.0, tk.END)
         self._textbox.insert(tk.END, [self._bsc102_x.read_position(), self._bsc102_y.read_position()])
         self._textbox.pack()
+
+    def home(self):
+        self._bsc102_y.home()
+        self._bsc102_x.home()
+        self._textbox.delete(1.0, tk.END)
+        self._textbox.insert(tk.END, [self._bsc102_x.read_position(), self._bsc102_y.read_position()])
+        self._textbox.pack()
+
+    def build_thermvoltage_map_gui(self):
+        caption = "Thermovoltage map scan"
+        self._fields = {'file path': "", 'device': "", 'scan': 0, 'notes': "", 'x pixel density': 20,
+                        'y pixel density': 20, 'x range': 8, 'y range': 8, 'x center': 4, 'y center': 4}
+        self.beginform(caption)
+        self.make_option_menu('gain', self._voltage_gain, self._voltage_gain_options)
+        self.make_option_menu('direction', self._direction, ['Forward', 'Reverse'])
+        self.make_option_menu('cutthrough axis', self._axis, ['x', 'y'])
+        self.endform(self.thermovoltage_scan)
+
+    def thermovoltage_scan(self, event=None):
+        self.fetch(event)
+        if self._direction.get() == 'Reverse':
+            direction = False
+        else:
+            direction = True
+        run = ThermovoltageMapScan(tk.Toplevel(self._master), self._inputs['file path'], self._inputs['notes'],
+                                   self._inputs['device'], int(self._inputs['scan']), float(self._voltage_gain.get()),
+                                   int(self._inputs['x pixel density']), int(self._inputs['y pixel density']),
+                                   int(self._inputs['x range']), int(self._inputs['y range']),
+                                   int(self._inputs['x center']), int(self._inputs['y center']),
+                                   self._bsc102_x, self._bsc102_y, self._sr7270_single_reference, self._powermeter,
+                                   self._waveplate, direction,self._axis.get())
+        run.main()
+
+    def build_heating_map_gui(self):
+        caption = "Heating map scan"
+        self._fields = {'file path': "", 'device': "", 'scan': 0, 'notes': "", 'x pixel density': 20,
+                        'y pixel density': 20, 'x range': 8, 'y range': 8, 'x center': 4, 'y center': 4,
+                        'bias (mV)': 5, 'oscillator amplitude (mV)': 0.7}
+        self.beginform(caption)
+        self.make_option_menu('gain', self._voltage_gain, self._voltage_gain_options)
+        self.make_option_menu('direction', self._direction, ['Forward', 'Reverse'])
+        self.make_option_menu('cutthrough axis', self._axis, ['x', 'y'])
+        self.endform(self.heating_scan)
+
+    def heating_scan(self, event=None):
+        self.fetch(event)
+        if self._direction.get() == 'Reverse':
+            direction = False
+        else:
+            direction = True
+        run = HeatingMapScan(tk.Toplevel(self._master), self._inputs['file path'], self._inputs['notes'],
+                             self._inputs['device'], int(self._inputs['scan']), float(self._voltage_gain.get()),
+                             int(self._inputs['x pixel density']), int(self._inputs['y pixel density']),
+                             int(self._inputs['x range']), int(self._inputs['y range']),
+                             int(self._inputs['x center']), int(self._inputs['y center']),
+                             float(self._inputs['bias (mV)']), float(self._inputs['oscillator amplitude (mV)']),
+                             self._bsc102_x, self._bsc102_y, self._sr7270_single_reference, self._powermeter,
+                             self._waveplate, direction,self._axis.get())
+        run.main()
+
 
     def thermovoltage_time(self, event=None):
         self.fetch(event)
@@ -372,7 +447,7 @@ def main():
                 waveplate = None
                 print('Warning: Waveplate controller not connected')
             try:
-                bsc102_x, bsc102_y = cm.enter_context(bsc102controller.connect_bsc102(hw.bsc102_serial_number))
+                bsc102_y, bsc102_x = cm.enter_context(bsc102controller.connect_bsc102(hw.bsc102_serial_number))
             except:
                 bsc102_x = None
                 bsc102_y = None

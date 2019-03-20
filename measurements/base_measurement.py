@@ -3,9 +3,7 @@ import os
 import tkinter as tk
 import time
 import csv
-from optics.misc_utility.tkinter_utilities import tk_sleep
 from matplotlib.figure import Figure
-from optics.misc_utility import conversions
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class LockinBaseMeasurement:
@@ -131,8 +129,8 @@ class LockinBaseMeasurement:
         pass
 
     def centerbeam(self):
-        self._bsc102_y.move(80)
-        self._bsc102_x.move(80)
+        self._bsc102_y.move(4)
+        self._bsc102_x.move(4)
 
     def pack_buttons(self, master, abort_button=True, colormap_rescale=False, center_beam=False):
         if colormap_rescale:

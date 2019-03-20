@@ -9,9 +9,9 @@ from optics.thermovoltage_plot import thermovoltage_plot
 
 def find_scan_values(x_center, y_center, x_range, y_range, x_scan_density, y_scan_density):
     x_min = x_center - (x_range / 2) if x_center - (x_range / 2) >= 0 else 0
-    x_max = x_center + (x_range / 2) if x_center + (x_range / 2) <= 160 else 160
+    x_max = x_center + (x_range / 2) if x_center + (x_range / 2) <= 8 else 8
     y_min = y_center - (y_range / 2) if y_center - (y_range / 2) >= 0 else 0
-    y_max = y_center + (y_range / 2) if y_center + (y_range / 2) <= 160 else 160
+    y_max = y_center + (y_range / 2) if y_center + (y_range / 2) <= 8 else 8
 
     x_val = np.round(np.linspace(x_min, x_max, x_scan_density), 2)
     y_val = np.round(np.linspace(y_min, y_max, y_scan_density), 2)

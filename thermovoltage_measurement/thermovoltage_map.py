@@ -4,6 +4,7 @@ from optics.misc_utility import conversions
 from optics.measurements.base_map import MapScan
 import numpy as np
 from optics.thermovoltage_plot import thermovoltage_plot
+import matplotlib.pyplot as plt
 
 
 class ThermovoltageMapScan(MapScan):
@@ -13,6 +14,15 @@ class ThermovoltageMapScan(MapScan):
         super().__init__(master, filepath, notes, device, scan, gain, xd, yd, xr, yr, xc, yc,
                          bsc102_x, bsc102_y, sr7270_single_reference, powermeter=powermeter, waveplate=waveplate,
                          direction=direction, axis=axis)
+        self._norm = thermovoltage_plot.MidpointNormalize(midpoint=0)
+
+    def start(self):
+        self._im1 = self._ax1.imshow(self._z1.T, norm=self._norm, cmap=plt.cm.coolwarm, interpolation='nearest',
+                                     origin='lower')
+        self._im2 = self._ax2.imshow(self._z2.T, norm=self._norm, cmap=plt.cm.coolwarm, interpolation='nearest',
+                                     origin='lower')
+        self._clb1 = self._fig.colorbar(self._im1, ax=self._ax1)
+        self._clb2 = self._fig.colorbar(self._im2, ax=self._ax2)
 
     def end_header(self, writer):
         writer.writerow(['end:', 'end of header'])

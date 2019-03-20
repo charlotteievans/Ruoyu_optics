@@ -3,9 +3,7 @@ import matplotlib
 matplotlib.use('Qt4Agg')  # this allows you to see the interactive plots!
 from optics.misc_utility import scanner
 import numpy as np
-from optics.thermovoltage_plot import thermovoltage_plot
 import warnings
-import matplotlib.pyplot as plt
 from optics.measurements.base_measurement import LockinBaseMeasurement
 from optics.misc_utility.tkinter_utilities import tk_sleep
 import csv
@@ -15,9 +13,6 @@ class MapScan(LockinBaseMeasurement):
     def __init__(self, master, filepath, notes, device, scan, gain, xd, yd, xr, yr, xc, yc,
                  bsc102_x, bsc102_y, sr7270_single_reference, powermeter=None, waveplate=None, direction=True,
                  axis='y'):
-        super().__init__(master=master, filepath=filepath, device=device,
-                         sr7270_single_reference=sr7270_single_reference, powermeter=powermeter, waveplate=waveplate,
-                         notes=notes, gain=gain, bsc102_x=bsc102_x, bsc102_y=bsc102_y, scan=scan)
         self._xd = xd  # x pixel density
         self._yd = yd  # y pixel density
         self._yr = yr  # y range
@@ -29,26 +24,22 @@ class MapScan(LockinBaseMeasurement):
         self._z1 = np.zeros((self._xd, self._yd))
         self._z2 = np.zeros((self._xd, self._yd))
         self._axis = axis
-        self._norm = thermovoltage_plot.MidpointNormalize(midpoint=0)
         self._x_val, self._y_val = scanner.find_scan_values(self._xc, self._yc, self._xr, self._yr, self._xd, self._yd)
         self._direction = direction
         if not self._direction:
             self._y_val = self._y_val[::-1]
-        self._time_constant = self._sr7270_single_reference.read_tc()
         self._v = []
         self._cut_writer = None
+        super().__init__(master=master, filepath=filepath, device=device,
+                         sr7270_single_reference=sr7270_single_reference, powermeter=powermeter, waveplate=waveplate,
+                         notes=notes, gain=gain, bsc102_x=bsc102_x, bsc102_y=bsc102_y, scan=scan)
+        self._time_constant = self._sr7270_single_reference.read_tc()
 
     def load(self):
         self._ax1 = self._fig.add_subplot(221)
         self._ax2 = self._fig.add_subplot(223)
         self._ax3 = self._fig.add_subplot(222)
         self._ax4 = self._fig.add_subplot(224)
-        self._im1 = self._ax1.imshow(self._z1.T, norm=self._norm, cmap=plt.cm.coolwarm, interpolation='nearest',
-                                     origin='lower')
-        self._im2 = self._ax2.imshow(self._z2.T, norm=self._norm, cmap=plt.cm.coolwarm, interpolation='nearest',
-                                     origin='lower')
-        self._clb1 = self._fig.colorbar(self._im1, ax=self._ax1)
-        self._clb2 = self._fig.colorbar(self._im2, ax=self._ax2)
 
     def onclick(self, event):
         try:
@@ -69,6 +60,9 @@ class MapScan(LockinBaseMeasurement):
         cutfilename = self._filename.split('.csv')[0] + '_cut.csv'
         with open(cutfilename, 'w', newline='') as cutinputfile:
             self._cut_writer = csv.writer(cutinputfile)
+            self._cut_writer.writerow(['axis:', self._axis])
+            self._cut_writer.writerow(['end:', 'end of header'])
+            self._cut_writer.writerow(['pixel', 'cut v_x', 'cut v_y'])
             if self._axis == 'y':
                 for self._y_ind, i in enumerate(self._y_val):
                     self._master.update()
@@ -80,7 +74,9 @@ class MapScan(LockinBaseMeasurement):
                         self._y_ind = len(self._y_val) - self._y_ind - 1
                     self._bsc102_y.move(i)
                     self._v = []
-                    for self._x_ind, j in enumerate(self._x_val):
+                    x_val = self._x_val if self._y_ind % 2 == 0 else self._x_val[::-1]
+                    for self._x_ind, j in enumerate(x_val):
+                        self._x_ind = self._x_ind if self._y_ind % 2 == 0 else len(x_val) - self._x_ind - 1
                         self._bsc102_x.move(j)
                         tk_sleep(self._master, self._time_constant * 1000 * 3)  # DO NOT USE TIME.SLEEP IN TKINTER LOOP
                         self.do_measurement()
@@ -131,6 +127,10 @@ class MapScan(LockinBaseMeasurement):
         # that was never written
         cid = self._fig.canvas.mpl_connect('button_press_event',
                                            self.onclick)  # click on pixel to move laser position there
+        self.stop2()
+
+    def stop2(self):
+        pass
 
     def do_cut_measurement(self):
         pass

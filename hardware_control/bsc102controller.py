@@ -63,6 +63,7 @@ class StepperMotorController:
     def __init__(self, ch):
         """Stepper Motor Controller for Thorlabs BSC102. Inputs are a single channel from the context manager"""
         self._ch = ch
+        self.home()
 
     def move(self, position):
         """Move to absolute position"""
@@ -73,7 +74,6 @@ class StepperMotorController:
         self.wait_until_complete()
         self._ch.MoveTo(Decimal(position), 60000)  # do not use waiteventhandler here - there is an error
             # this is a System.Decimal!
-        self.wait_until_complete()
 
     def home(self):
         """Home device. Because this is an open loop, homing should be completed often"""
