@@ -74,6 +74,7 @@ class StepperMotorController:
         self.wait_until_complete()
         self._ch.MoveTo(Decimal(position), 60000)  # do not use waiteventhandler here - there is an error
             # this is a System.Decimal!
+        self.wait_until_complete()
 
     def home(self):
         """Home device. Because this is an open loop, homing should be completed often"""

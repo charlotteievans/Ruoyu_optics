@@ -100,8 +100,8 @@ class LockinBaseMeasurement:
             writer.writerow(['applied voltage (V):', self._sr7270_dual_harmonic.read_applied_voltage()])
             writer.writerow(['osc amplitude (V):', self._sr7270_dual_harmonic.read_oscillator_amplitude()])
             writer.writerow(['osc frequency:', self._sr7270_dual_harmonic.read_oscillator_frequency()])
-            writer.writerow(['dual harmonic time constant 1: ', self._sr7270_dual_harmonic.read_tc()])
-            writer.writerow(['dual harmonic time constant 2: ', self._sr7270_dual_harmonic.read_tc(channel=2)])
+            writer.writerow(['dual harmonic time constant 1:', self._sr7270_dual_harmonic.read_tc()])
+            writer.writerow(['dual harmonic time constant 2:', self._sr7270_dual_harmonic.read_tc(channel=2)])
             writer.writerow(
                 ['dual harmonic reference phase 1: ', self._sr7270_dual_harmonic.read_reference_phase()])
             writer.writerow(['dual harmonic reference phase 2: ',
@@ -110,8 +110,8 @@ class LockinBaseMeasurement:
             writer.writerow(['applied voltage (V):', self._sr7270_single_reference.read_applied_voltage()])
             writer.writerow(['osc amplitude (V):', self._sr7270_single_reference.read_oscillator_amplitude()])
             writer.writerow(['osc frequency:', self._sr7270_single_reference.read_oscillator_frequency()])
-            writer.writerow(['single reference phase: ', self._sr7270_single_reference.read_reference_phase()])
-            writer.writerow(['single reference time constant: ', self._sr7270_single_reference.read_tc()])
+            writer.writerow(['single reference phase:', self._sr7270_single_reference.read_reference_phase()])
+            writer.writerow(['single reference time constant:', self._sr7270_single_reference.read_tc()])
         if self._gain:
             writer.writerow(['gain:', self._gain])
         if record_power:

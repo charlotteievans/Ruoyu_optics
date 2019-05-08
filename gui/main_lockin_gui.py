@@ -130,8 +130,8 @@ class LockinMeasurementGUI(BaseGUI):
 
     def changeposition(self, event=None):
         self.fetch(event)
-        self._bsc102_x.move(int(self._inputs['x']))
-        self._bsc102_y.move(int(self._inputs['y']))
+        self._bsc102_x.move(float(self._inputs['x']))
+        self._bsc102_y.move(float(self._inputs['y']))
         self._textbox.delete(1.0, tk.END)
         self._textbox.insert(tk.END, [self._bsc102_x.read_position(), self._bsc102_y.read_position()])
         self._textbox.pack()
@@ -169,8 +169,8 @@ class LockinMeasurementGUI(BaseGUI):
         run = ThermovoltageMapScan(tk.Toplevel(self._master), self._inputs['file path'], self._inputs['notes'],
                                    self._inputs['device'], int(self._inputs['scan']), float(self._voltage_gain.get()),
                                    int(self._inputs['x pixel density']), int(self._inputs['y pixel density']),
-                                   int(self._inputs['x range']), int(self._inputs['y range']),
-                                   int(self._inputs['x center']), int(self._inputs['y center']),
+                                   float(self._inputs['x range']), float(self._inputs['y range']),
+                                   float(self._inputs['x center']), float(self._inputs['y center']),
                                    self._bsc102_x, self._bsc102_y, self._sr7270_single_reference, self._powermeter,
                                    self._waveplate, direction,self._axis.get())
         run.main()
@@ -195,8 +195,8 @@ class LockinMeasurementGUI(BaseGUI):
         run = HeatingMapScan(tk.Toplevel(self._master), self._inputs['file path'], self._inputs['notes'],
                              self._inputs['device'], int(self._inputs['scan']), float(self._voltage_gain.get()),
                              int(self._inputs['x pixel density']), int(self._inputs['y pixel density']),
-                             int(self._inputs['x range']), int(self._inputs['y range']),
-                             int(self._inputs['x center']), int(self._inputs['y center']),
+                             float(self._inputs['x range']), float(self._inputs['y range']),
+                             float(self._inputs['x center']), float(self._inputs['y center']),
                              float(self._inputs['bias (mV)']), float(self._inputs['oscillator amplitude (mV)']),
                              self._bsc102_x, self._bsc102_y, self._sr7270_single_reference, self._powermeter,
                              self._waveplate, direction,self._axis.get())

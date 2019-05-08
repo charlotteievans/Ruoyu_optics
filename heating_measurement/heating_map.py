@@ -29,6 +29,12 @@ class HeatingMapScan(MapScan):
         self._sr7270_single_reference.change_applied_voltage(0)
 
     def end_header(self, writer):
+        writer.writerow(['x scan density:', self._xd])
+        writer.writerow(['y scan density:', self._yd])
+        writer.writerow(['x scan range:', self._xr])
+        writer.writerow(['y scan range:', self._yr])
+        writer.writerow(['x center:', self._xc])
+        writer.writerow(['y center:', self._yc])
         writer.writerow(['end:', 'end of header'])
         writer.writerow(['x_raw', 'y_raw', 'x_iphoto', 'y_iphoto', 'x_pixel', 'y_pixel'])
 

@@ -72,12 +72,12 @@ class MapScan(LockinBaseMeasurement):
                         break
                     if not self._direction:
                         self._y_ind = len(self._y_val) - self._y_ind - 1
-                    self._bsc102_y.move(i)
+                    self._bsc102_y.move(float(i))
                     self._v = []
                     x_val = self._x_val if self._y_ind % 2 == 0 else self._x_val[::-1]
                     for self._x_ind, j in enumerate(x_val):
                         self._x_ind = self._x_ind if self._y_ind % 2 == 0 else len(x_val) - self._x_ind - 1
-                        self._bsc102_x.move(j)
+                        self._bsc102_x.move(float(j))
                         tk_sleep(self._master, self._time_constant * 1000 * 3)  # DO NOT USE TIME.SLEEP IN TKINTER LOOP
                         self.do_measurement()
                         self._fig.set_tight_layout(True)
@@ -90,34 +90,34 @@ class MapScan(LockinBaseMeasurement):
                     self.do_cut_measurement()
                     self._fig.set_tight_layout(True)
                     self._canvas.draw()
-                self._bsc102_x.move(0)
-                self._bsc102_y.move(0)  # returns piezo controller position to 0,0
+                self._bsc102_x.home()
+                self._bsc102_y.home()  # returns piezo controller position to 0,0
             else:
                 for self._x_ind, i in enumerate(self._x_val):
                     self._master.update()
                     if self._abort:
-                        self._bsc102_x.move(0)
-                        self._bsc102_y.move(0)
+                        self._bsc102_x.home()
+                        self._bsc102_y.home()
                         break
                     if not self._direction:
                         self._x_ind = len(self._x_val) - self._x_ind - 1
-                    self._bsc102_x.move(i)
+                    self._bsc102_x.move(float(i))
                     self._v = []
                     for self._y_ind, j in enumerate(self._y_val):
-                        self._bsc102_y.move(j)
+                        self._bsc102_y.move(float(j))
                         self.do_measurement()
                         self._fig.set_tight_layout(True)
                         self._canvas.draw()  # dynamically plots the data and closes automatically after completing the scan
                         self._master.update()
                         if self._abort:
-                            self._bsc102_x.move(0)
-                            self._bsc102_y.move(0)
+                            self._bsc102_x.home()
+                            self._bsc102_y.home()
                             break
                     self.do_cut_measurement()
                     self._fig.set_tight_layout(True)
                     self._canvas.draw()
-                self._bsc102_x.move(0)
-                self._bsc102_y.move(0)  # returns piezo controller position to 0,0
+                self._bsc102_x.home()
+                self._bsc102_y.home()  # returns piezo controller position to 0,0
             self.plot_final()
 
     def stop(self):

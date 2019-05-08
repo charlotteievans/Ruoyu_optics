@@ -25,6 +25,12 @@ class ThermovoltageMapScan(MapScan):
         self._clb2 = self._fig.colorbar(self._im2, ax=self._ax2)
 
     def end_header(self, writer):
+        writer.writerow(['x scan density:', self._xd])
+        writer.writerow(['y scan density:', self._yd])
+        writer.writerow(['x scan range:', self._xr])
+        writer.writerow(['y scan range:', self._yr])
+        writer.writerow(['x center:', self._xc])
+        writer.writerow(['y center:', self._yc])
         writer.writerow(['end:', 'end of header'])
         writer.writerow(['x_raw', 'y_raw', 'x_v', 'y_v', 'x_pixel', 'y_pixel'])
 
